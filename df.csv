@@ -1,0 +1,3 @@
+date,Year,Month,day,week_of_year,onpromotion,store_cluster,family,events,oil_price,sales
+2023-03-25,2023,3,25,12,No,6,HOME AND KITCHEN,No holiday,,
+2023-03-25,2023,3,25,12,Yes,3,BEAUTY AND FASHION,No holiday,,<function predict at 0x000002B7B2F10430>
