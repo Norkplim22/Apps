@@ -11,12 +11,9 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 # loading the trained model 
-try:
-   with open("Ts_model.sav", "rb") as f:
-        model = joblib.load(f)
-        print(f"[Info] model type : {type(model)}")
-except IndexError as e:
-    print(e)
+with open('steps', 'rb') as file:
+    pickle.load(file)
+model_loaded = components["model"]
 
 # first line after the importation section
 st.set_page_config(page_title="Sales predictor app", layout="centered")
@@ -56,7 +53,7 @@ def predict(df):
     return prediction
     
  
-sales = predict(df)   
+#sales = predict(df)   
 
 # prediction execution
 
@@ -81,7 +78,7 @@ form = st.form(key="information", clear_on_submit=True)
 with form:
 
     cols = st.columns((1, 1))
-    Year=cols[0].number_input("Year"),
+    Year=cols[0].text_input("Year"),
     Month=cols[1].number_input("Month", min_value=1,max_value=12,step=1),
     day=cols[0].number_input("day",min_value=1,max_value=31,step=1)
     onpromotion = cols[1].selectbox("onpromotion:", ["Yes", "No"])
