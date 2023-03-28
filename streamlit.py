@@ -28,11 +28,9 @@ def setup(df):
     "Setup the required elements like files, models, global variables, etc"
     pd.DataFrame(
         dict(
-            date=[],
             Year=[],
             Month=[],
             day=[],
-            week_of_year=[],
             onpromotion=[],
             store_cluster=[],
             family=[],
@@ -48,7 +46,7 @@ setup(df)
 #return predict
 def predict(df):
     cat = [["onpromotion", "family", "events"]]
-    num= ["date", "oil_price", "store_cluster"]
+    num= ["Year", "Month", "day", "oil_price", "store_cluster"]
     encode=OneHotEncoder(drop="first", sparse_output=False).fit_transform(cat)      
     #enc=encode.reshape(encode(1,-1))
     cat_encoded=pd.DataFrame(encode)
@@ -58,7 +56,7 @@ def predict(df):
     return prediction
     
  
-#sales = predict(df)   
+sales = predict(df)   
 
 # prediction execution
 
@@ -83,11 +81,13 @@ form = st.form(key="information", clear_on_submit=True)
 with form:
 
     cols = st.columns((1, 1))
-    date = cols[0].date_input("date")
-    onpromotion = cols[0].selectbox("onpromotion:", ["Yes", "No"])
-    store_cluster = cols[1].number_input("store_cluster", min_value=1,max_value=17,step=1)
-    family = cols[0].selectbox("family:", ["AUTOMOTIVE", "BEAUTY AND FASHION", "BEVERAGES AND LIQUOR", "FROZEN FOODS", "Grocery", "HOME AND KITCHEN", "HOME CARE AND GARDEN", "PET SUPPLIES", "SCHOOL AND OFFICE SUPPLIES"], index=2)
-    events = cols[1].selectbox("events:", ["Holiday", "No holiday"])
+    Year=cols[0].number_input("Year"),
+    Month=cols[1].number_input("Month", min_value=1,max_value=12,step=1),
+    day=cols[0].number_input("day",min_value=1,max_value=31,step=1)
+    onpromotion = cols[1].selectbox("onpromotion:", ["Yes", "No"])
+    store_cluster = cols[0].number_input("store_cluster", min_value=1,max_value=17,step=1)
+    family = cols[1].selectbox("family:", ["AUTOMOTIVE", "BEAUTY AND FASHION", "BEVERAGES AND LIQUOR", "FROZEN FOODS", "Grocery", "HOME AND KITCHEN", "HOME CARE AND GARDEN", "PET SUPPLIES", "SCHOOL AND OFFICE SUPPLIES"], index=2)
+    events = cols[0].selectbox("events:", ["Holiday", "No holiday"])
     oil_price=st.slider("Enter the current oil price",min_value=1.00,max_value=100.00,step=0.1)
     
     cols = st.columns(2)
@@ -99,11 +99,9 @@ if submitted:
     st.success("Thanks!")
     pd.read_csv(df).append(
         dict(
-            date=date,
-            Year=date.year,
-            Month=date.month,
-            day=date.day,
-            week_of_year=date.isocalendar().week,
+            Year=Year,
+            Month=Month,
+            day=day,
             onpromotion=onpromotion,
             store_cluster=store_cluster,
             family=family,
