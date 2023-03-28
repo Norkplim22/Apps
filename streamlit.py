@@ -11,9 +11,14 @@ from sklearn.preprocessing import OneHotEncoder
 
 
 # loading the trained model 
-with open('steps', 'rb') as file:
-    pickle.load(file)
-model_loaded = components["model"]
+def load_model():
+    with open('steps', 'rb') as file:
+        data = pickle.load(file)
+    return data
+
+data = load_model()
+decision_tree = data["model"]
+encoding = data["encoder"]
 
 # first line after the importation section
 st.set_page_config(page_title="Sales predictor app", layout="centered")
@@ -25,9 +30,7 @@ def setup(df):
     "Setup the required elements like files, models, global variables, etc"
     pd.DataFrame(
         dict(
-            Year=[],
-            Month=[],
-            day=[],
+            date=[],
             onpromotion=[],
             store_cluster=[],
             family=[],
@@ -96,16 +99,14 @@ if submitted:
     st.success("Thanks!")
     pd.read_csv(df).append(
         dict(
-            Year=Year,
-            Month=Month,
-            day=day,
+             date=date,
             onpromotion=onpromotion,
             store_cluster=store_cluster,
             family=family,
             events=events,
             oil_price=oil_price,
             sales=sales
-        ),
+            ),
         ignore_index=True,
     ).to_csv(df, index=False)
     st.balloons()
