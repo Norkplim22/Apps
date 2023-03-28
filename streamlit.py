@@ -2,15 +2,19 @@ import streamlit as st
 import pandas as pd
 import os
 import pickle
-#import sklearn 
-#import scipy
+import sklearn 
+import scipy
 import numpy as np
-#import joblib
+import sklearn.externals as extjoblib
+import joblib
+from sklearn.preprocessing import OneHotEncoder
+
 
 # loading the trained model 
 try:
    with open("Ts_model.sav", "rb") as f:
-        model = pickle.load(f)
+        model = joblib.load(f)
+        print(f"[Info] model type : {type(model)}")
 except IndexError as e:
     print(e)
 
@@ -42,14 +46,19 @@ setup(df)
 
 #predict = model.prediction(data)
 #return predict
-
-ml_components_dict = setup(df)
 def predict(df):
-    cat_cols = ml_components_dict['cat']
-    encoder = ml_components_dict['OneHotEncoder']
-    prediction = model.predict(df)
+    cat = [["onpromotion", "family", "events"]]
+    num= ["date", "oil_price", "store_cluster"]
+    encode=OneHotEncoder(drop="first", sparse_output=False).fit_transform(cat)      
+    #enc=encode.reshape(encode(1,-1))
+    cat_encoded=pd.DataFrame(encode)
+    num_df = pd.DataFrame(num)
+    data= pd.concat([num_df, cat_encoded], axis=1)
+    prediction = model.predict(data)
     return prediction
     
+ 
+#sales = predict(df)   
 
 # prediction execution
 
@@ -99,7 +108,8 @@ if submitted:
             store_cluster=store_cluster,
             family=family,
             events=events,
-            sales=predict
+            oil_price=oil_price,
+            sales=sales
         ),
         ignore_index=True,
     ).to_csv(df, index=False)
