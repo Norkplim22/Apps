@@ -7,7 +7,7 @@ import scipy
 import numpy as np
 import sklearn.externals as extjoblib
 import joblib
-from sklearn.preprocessing import OneHotEncoder
+from sklearn import preprocessing
 
 
 # loading the trained model 
@@ -19,6 +19,16 @@ def load_model():
 data = load_model()
 decision_tree = data["model"]
 encoding = data["encoder"]
+
+def date_transform(df,date):
+    df["date"] = pd.to_datetime(df["date"])
+    df["Year"] = df['date'].dt.year
+    df["Month"] = df['date'].dt.month
+    df["Week"] = df['date'].dt.week
+    df["Day"] = df['date'].dt.day
+    df['quarter'] = df['date'].dt.quarter
+    df['week_of_year'] = df['date'].dt.isocalendar().week
+    return df
 
 # first line after the importation section
 st.set_page_config(page_title="Sales predictor app", layout="centered")
@@ -41,33 +51,7 @@ def setup(df):
     
 df = os.path.join(DIRPATH, "df.csv")
 setup(df)
-
-#predict = model.prediction(data)
-#return predict
-def predict(df):
-    cat = [["onpromotion", "family", "events"]]
-    num= ["Year", "Month", "day", "oil_price", "store_cluster"]
-    encode=OneHotEncoder(drop="first", sparse_output=False).fit_transform(cat)      
-    #enc=encode.reshape(encode(1,-1))
-    cat_encoded=pd.DataFrame(encode)
-    num_df = pd.DataFrame(num)
-    data= pd.concat([num_df, cat_encoded], axis=1)
-    prediction = model.predict(data)
-    return prediction
-    
  
-#sales = predict(df)   
-
-# prediction execution
-
-
-#labels = ml_components_dict['labels']
-#num_cols = ml_components_dict['num']
-#num_imputer = ml_components_dict['num_imputer']
-#cat_imputer = ml_components_dict['cat_imputer']
-#scaler = ml_components_dict['StandardScaler']
-#model = ml_components_dict['model']
-
 
 #creating the interface
 
@@ -81,34 +65,40 @@ form = st.form(key="information", clear_on_submit=True)
 with form:
 
     cols = st.columns((1, 1))
-    Year=cols[0].text_input("Year"),
-    Month=cols[1].number_input("Month", min_value=1,max_value=12,step=1),
-    day=cols[0].number_input("day",min_value=1,max_value=31,step=1)
-    onpromotion = cols[1].selectbox("onpromotion:", ["Yes", "No"])
-    store_cluster = cols[0].number_input("store_cluster", min_value=1,max_value=17,step=1)
-    family = cols[1].selectbox("family:", ["AUTOMOTIVE", "BEAUTY AND FASHION", "BEVERAGES AND LIQUOR", "FROZEN FOODS", "Grocery", "HOME AND KITCHEN", "HOME CARE AND GARDEN", "PET SUPPLIES", "SCHOOL AND OFFICE SUPPLIES"], index=2)
-    events = cols[0].selectbox("events:", ["Holiday", "No holiday"])
+    date=cols[0].date_input("date")
+    store_cluster = cols[1].number_input("store_cluster", min_value=1,max_value=17,step=1)
+    family = cols[0].selectbox("family:", ["AUTOMOTIVE", "BEAUTY AND FASHION", "BEVERAGES AND LIQUOR", "FROZEN FOODS", "Grocery", "HOME AND KITCHEN", "HOME CARE AND GARDEN", "PET SUPPLIES", "SCHOOL AND OFFICE SUPPLIES"], index=2)
+    events = cols[1].selectbox("events:", ["Holiday", "No holiday"])
     oil_price=st.slider("Enter the current oil price",min_value=1.00,max_value=100.00,step=0.1)
-    
+    onpromotion = st.slider("Enter the no of item on promotion",min_value=1.00,max_value=30.0,step=0.1)
     cols = st.columns(2)
 
     submitted = st.form_submit_button(label="Predict")
     
 
 if submitted:
-    st.success("Thanks!")
     pd.read_csv(df).append(
         dict(
-             date=date,
+            date=date,
             onpromotion=onpromotion,
             store_cluster=store_cluster,
             family=family,
             events=events,
             oil_price=oil_price,
-            sales=sales
             ),
         ignore_index=True,
     ).to_csv(df, index=False)
+    df = pd.read_csv(df)
+    new_df = date_transform(df,date)
+
+    #Encoding on categorical columns.
+    cat = ["family", "events"]
+    for column in cat:
+        new_df[column] = encoding.transform(new_df[[column]])
+
+    Prediction = decision_tree.predict(new_df)
+    st.subheader(f"The prediction is {Prediction}")
+
     st.balloons()
 
 expander = st.expander("See all records")

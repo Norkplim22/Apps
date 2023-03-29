@@ -1,1 +1,5 @@
-Year,Month,day,onpromotion,store_cluster,family,events,oil_price
+date,onpromotion,store_cluster,family,events,oil_price
+2023-03-29,8.0,4,BEVERAGES AND LIQUOR,Holiday,54.2
+2023-03-29,9.1,3,BEVERAGES AND LIQUOR,Holiday,42.0
+2023-03-29,13.4,1,BEVERAGES AND LIQUOR,Holiday,35.4
+2023-03-29,1.0,1,BEVERAGES AND LIQUOR,Holiday,1.0
