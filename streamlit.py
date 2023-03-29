@@ -8,6 +8,7 @@ import numpy as np
 import sklearn.externals as extjoblib
 import joblib
 from sklearn import preprocessing
+from sklearn.preprocessing import OneHotEncoder
 
 
 # loading the trained model 
@@ -18,7 +19,7 @@ def load_model():
 
 data = load_model()
 decision_tree = data["model"]
-encoding = data["encoder"]
+#encoding = data["encoder"]
 
 def date_transform(df,date):
     df["date"] = pd.to_datetime(df["date"])
@@ -90,16 +91,20 @@ if submitted:
     ).to_csv(df, index=False)
     df = pd.read_csv(df)
     new_df = date_transform(df,date)
-
+    
     #Encoding on categorical columns.
     cat = ["family", "events"]
-    for column in cat:
-        new_df[column] = encoding.transform(new_df[[column]])
+    num = ["onpromotion", "store_cluster", "oil_price"]
+    
+    encoder = OneHotEncoder(drop = "first", sparse=False)
+    encoded_features = encoder.fit_transform(df[cat])
+    encoded_cat_col = pd.DataFrame(encoded_features, columns=encoder.get_feature_names_out().tolist())
+    new_df= pd.concat([new_df.reset_index(drop=True), encoded_cat_col], axis=1)
 
     Prediction = decision_tree.predict(new_df)
     st.subheader(f"The prediction is {Prediction}")
 
-    st.balloons()
+st.balloons()
 
 expander = st.expander("See all records")
 with expander:
