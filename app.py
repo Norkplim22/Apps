@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import os
-import pickle
 import sklearn 
 import scipy
 import numpy as np
@@ -75,10 +74,10 @@ if st.button("Predict"):
 
 # Make a prediction
         prediction =dt_model.predict(final_df)[0]
-        st.balloons()
-
+        
 
 # Display the prediction
         st.write(f"The predicted sales are: {prediction}.")
         input_df.to_csv("data.csv", index=False)
         st.table(input_df)
+st.balloons()
