@@ -26,19 +26,25 @@ st.caption("This app predicts sales patterns of Cooperation Favorita over time i
 input_df = {}
 col1,col2 = st.columns(2)
 with col1:
-    input_df["Year"] = st.number_input("Year",step=1)
-    input_df["Month"] = st.slider("Month", min_value=1, max_value=12, step=1)
-    input_df["Day"] = st.slider("Day", min_value=1, max_value=31, step=1)
-    input_df["Quarter"] = st.slider("quater", min_value=1, max_value=4, step=1)
-    input_df["week_of_year"] = st.slider("week_of_year", min_value=1, max_value=54, step=1)
-
-with col2:   
-    input_df["store_cluster"] = st.number_input("store_cluster", min_value=1,max_value=17,step=1)
-    input_df["family"] = st.selectbox("family:", ["AUTOMOTIVE", "BEAUTY AND FASHION", "BEVERAGES AND LIQUOR", "FROZEN FOODS", "Grocery", "HOME AND KITCHEN", "HOME CARE AND GARDEN", "PET SUPPLIES", "SCHOOL AND OFFICE SUPPLIES"], index=2)
-    input_df["events"] = st.selectbox("events:", ["Holiday", "No holiday"])
-    input_df["oil_price"] =st.slider("Enter the current oil price",min_value=1.00,max_value=100.00,step=0.1)
+    input_df["year"] = st.number_input("year",step=1)
+    input_df["month"] = st.slider("month", min_value=1, max_value=12, step=1)
+    input_df["day"] = st.slider("day", min_value=1, max_value=31, step=1)
+    input_df["dayofweek"] = st.number_input("dayofweek,0=Sun and 6=Sat",step=1)
+    input_df["end_month"] = st.selectbox("end_month",['True','False'])
     input_df["onpromotion"] = st.slider("Enter the no of item on promotion",min_value=1.00,max_value=30.0,step=0.1)
-    cols = st.columns(2)
+with col2:   
+    input_df["cluster"] = st.number_input("cluster", min_value=1,max_value=17,step=1)
+    input_df["product"] = st.selectbox("product", ["AUTOMOTIVE", "CLEANING", "BEAUTY", "FOODS", "GROCERY", "STATIONERY", 
+                                                   "CELEBRATION", "HOME", "HARDWARE", "LADIESWEAR", "LAWN AND GARDEN", "CLOTHING", "LIQUOR,WINE,BEER", "PET SUPPLIES"], index=2)
+    input_df["oil_price"] =st.slider("Enter the current oil price",min_value=1.00,max_value=100.00,step=0.1)  
+    input_df["store_nbr"] = st.slider("store_nbr",0,54)
+    input_df["state"] = st.selectbox("state", ['Pichincha', 'Cotopaxi', 'Chimborazo', 'Imbabura',
+       'Santo Domingo de los Tsachilas', 'Bolivar', 'Pastaza',
+       'Tungurahua', 'Guayas', 'Santa Elena', 'Los Rios', 'Azuay', 'Loja',
+       'El Oro', 'Esmeraldas', 'Manabi'])
+    input_df["store_type"] = st.selectbox("store_type",['D', 'C', 'B', 'E', 'A'])
+   
+
   # Create a button to make a prediction
 
 if st.button("Predict"):
@@ -47,48 +53,32 @@ if st.button("Predict"):
 
 
 # Selecting categorical and numerical columns separately
-        cat_columns = ["family", "events"]
-        num_columns = input_data.drop(input_data[cat_columns], axis=1)
+        cat_col = [col for col in input_data.columns if input_data[col].dtype == "object"]
+        num_col = [col for col in input_data.columns if input_data[col].dtype != "object"]
+
+
+ # Apply the imputers
+        input_data_cat = cat_imputer.transform(input_data[cat_col])
+        input_data_num = num_imputer.transform(input_data[num_col])
 
 
  # Encode the categorical columns
-        encoder = OneHotEncoder(drop = "first", sparse=False)
-        encoder.fit(input_data[cat_columns])
-        encoded_features = encoder.transform(input_data[cat_columns])
-        encoded_cat_col = pd.DataFrame(encoded_features, columns=encoder.get_feature_names_out().tolist())
-        #new_df= pd.concat([new_df.reset_index(drop=True), encoded_cat_col], axis=1)
+        input_encoded_df = pd.DataFrame(encoder.transform(input_data_cat).toarray(),
+                                   columns=encoder.get_feature_names(cat_col))
 
-        #input_encoded_df = pd.DataFrame(encoder.transform(input_data[cat_columns]),
-                                   #columns=encoder.get_feature_names(cat_columns))
-
+# Scale the numerical columns
+        input_df_scaled = scaler.transform(input_data_num)
+        input_scaled_df = pd.DataFrame(input_df_scaled , columns = num_col)
 
 #joining the cat encoded and num scaled
-        final_df = pd.concat([encoded_cat_col, num_columns], axis=1)
+        final_df = pd.concat([input_encoded_df, input_scaled_df], axis=1)
 
 # Make a prediction
-        prediction =decision_tree.predict(final_df)[0]
+        prediction =dt_model.predict(final_df)[0]
+        st.balloons()
 
 
 # Display the prediction
         st.write(f"The predicted sales are: {prediction}.")
         input_df.to_csv("data.csv", index=False)
         st.table(input_df)
-
-
-#Define columns
-    cat = [col for col in new_df.columns if new_df[col].dtype == 'object']
-    num = [col for col in new_df.columns if new_df[col].dtype != 'object']
-    
-   #Encoding on categorical columns.  
-    encoder = OneHotEncoder(drop = "first", sparse=False)
-    encoder.fit(df[cat])
-    encoded_features = encoder.transform(df[cat])
-    encoded_cat_col = pd.DataFrame(encoded_features, columns=encoder.get_feature_names_out().tolist())
-    new_df= pd.concat([new_df.reset_index(drop=True), encoded_cat_col], axis=1)
-
-    Prediction = decision_tree.predict(new_df)[0]
-    st.subheader(f"The prediction is {Prediction}")
-    input_df.to_csv("data.csv", index=False)
-    st.table(input_df)
-
-st.balloons()
